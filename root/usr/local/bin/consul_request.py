@@ -41,7 +41,8 @@ def consul_tuples(consul, service_name, only_passing=True, timeout=10, tags=[]):
         except:
             continue
         res.append({"name": container_name, "ip": address, "port": port})
-    return res
+    fn = lambda x: "%s__%s__%i" % (x['name'], x['ip'], x['port'])
+    return sorted(res, key=fn)
 
 tpls = consul_tuples(sys.argv[1], sys.argv[2])
 print json.dumps(tpls)

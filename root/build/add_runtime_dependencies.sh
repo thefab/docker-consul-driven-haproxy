@@ -1,5 +1,5 @@
 #!/bin/bash
 
 mkdir -p /build
-yum --enablerepo=epel install -y haproxy wget unzip
+yum --enablerepo=epel install -y haproxy wget unzip procmail
 rpm -qa --qf '%{name}\n' >/build/original_packages.list

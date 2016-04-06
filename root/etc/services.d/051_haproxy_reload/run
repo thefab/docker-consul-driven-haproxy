@@ -1,0 +1,17 @@
+#!/usr/bin/with-contenv bash
+
+# FIXME: SIGTERM handling
+
+# We "stack" the command to launch when receiving a TERM or INT signal
+trap "/bin/echo 'stop signal received' ; exit 0" TERM INT
+
+if test "${CONDRI_HAPROXY_FORWARDFOR}" = ""; then
+  # FIX TEMPORAIRE
+  export CONDRI_HAPROXY_FORWARDFOR=""
+fi
+
+
+while test 1 -eq 1; do
+    watch_haproxy_conf.sh
+    sleep 1
+done

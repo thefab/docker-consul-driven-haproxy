@@ -1,7 +1,7 @@
 #!/usr/bin/with-contenv bash
 
 # We "stack" the command to launch when receiving a TERM or INT signal
-trap "/bin/echo 'stop signal received' ; exit 0" TERM INT
+trap "echo 'stop signal received' ; pkill -9 -f 'watch_haproxy_conf.sh' ; exit 0" TERM INT
 
 if test "${CONDRI_HAPROXY_FORWARDFOR}" = ""; then
   # FIX TEMPORAIRE
