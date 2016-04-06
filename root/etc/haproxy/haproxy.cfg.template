@@ -1,0 +1,41 @@
+global
+    log         {{CONDRI_HAPROXY_SYSLOG_IP}} {{CONDRI_HAPROXY_SYSLOG_FACILITY}}
+    chroot      /var/lib/haproxy
+    pidfile     /var/run/haproxy.pid
+    maxconn     {{CONDRI_HAPROXY_MAXCONN}}
+    user        haproxy
+    group       haproxy
+    stats socket /var/lib/haproxy/stats
+    daemon
+
+defaults
+    mode                    http
+    log                     global
+    option                  httplog
+    option                  dontlognull
+    option http-server-close
+    option forwardfor {{CONDRI_HAPROXY_FORWARDFOR}}
+    option                  redispatch
+    retries                 3
+    timeout http-request    {{CONDRI_HAPROXY_TIMEOUT_HTTP_REQUEST}}
+    timeout queue           {{CONDRI_HAPROXY_TIMEOUT_QUEUE}}
+    timeout connect         {{CONDRI_HAPROXY_TIMEOUT_CONNECT}}
+    timeout client          {{CONDRI_HAPROXY_TIMEOUT_CLIENT}}
+    timeout server          {{CONDRI_HAPROXY_TIMEOUT_SERVER}}
+    timeout http-keep-alive {{CONDRI_HAPROXY_TIMEOUT_HTTP_KEEP_ALIVE}}
+    timeout check           {{CONDRI_HAPROXY_TIMEOUT_CHECK}}
+    maxconn                 {{CONDRI_HAPROXY_MAXCONN}}
+
+frontend main *:{{CONDRI_HAPROXY_FRONTEND_PORT}}
+    default_backend         app
+
+backend app
+    balance     {{CONDRI_HAPROXY_BALANCE}}
+    stats enable
+    {% if CONDRI_HAPROXY_HTTP_CHECK == "1" %}
+    option httpchk GET {{CONDRI_HAPROXY_HTTP_CHECK_URL}}
+    http-check disable-on-404
+    {% endif %}
+    {% for server in CONDRI_HAPROXY_SERVERS | from_json %}
+    server {{server.name}} {{server.ip}}:{{server.port}}{% if CONDRI_HAPROXY_HTTP_CHECK == "1" %} check{% endif %}
+    {% endfor %}

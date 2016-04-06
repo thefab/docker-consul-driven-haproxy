@@ -1,0 +1,26 @@
+#!/usr/bin/with-contenv bash
+
+# We "stack" the command to launch when receiving a TERM or INT signal
+trap "/bin/echo 'stop signal received' ; exit 0" TERM INT
+
+if test "${CONDRI_HAPROXY_FORWARDFOR}" = ""; then
+  # FIX TEMPORAIRE
+  export CONDRI_HAPROXY_FORWARDFOR=""
+fi
+
+# We make the haproxy from consul and environnement
+make_haproxy_conf.sh
+
+# We launch haproxy in daemon mode
+echo "Starting haproxy..."
+/etc/init.d/haproxy start >/dev/null 2>&1
+
+# We are waiting for a signal
+while test 1 -eq 1; do
+    sleep 1
+    timeout 10 /etc/init.d/haproxy status >/dev/null 2>&1
+    if test $? -ne 0; then
+        echo "haproxy is dead, restarting..."
+        exit 1
+    fi
+done
