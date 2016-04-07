@@ -7,18 +7,16 @@ RUN /build/add_runtime_dependencies.sh && \
     rm -f /etc/haproxy/haproxy.cfg
 
 # Add build dependencies
-#ADD root/build/add_common_buildtime_dependencies.sh /build/add_common_buildtime_dependencies.sh
-#RUN /build/add_common_buildtime_dependencies.sh
+ADD root/build/add_common_buildtime_dependencies.sh /build/add_common_buildtime_dependencies.sh
+RUN /build/add_common_buildtime_dependencies.sh
 
-# Add consul and consul-cli binaries
-ADD root/build/add_consul_binary.sh /build/add_consul_binary.sh
+# Add consul-cli
 ADD root/build/add_consul_cli.sh /build/add_consul_cli.sh
-RUN /build/add_consul_binary.sh && \
-    /build/add_consul_cli.sh
+RUN /build/add_consul_cli.sh
 
 # Remove build dependencies
-#ADD root/build/remove_buildtime_dependencies.sh /build/remove_buildtime_dependencies.sh
-#RUN /build/remove_buildtime_dependencies.sh
+ADD root/build/remove_buildtime_dependencies.sh /build/remove_buildtime_dependencies.sh
+RUN /build/remove_buildtime_dependencies.sh
 
 # Add custom other files
 COPY root /
