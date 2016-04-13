@@ -26,16 +26,27 @@ defaults
     timeout check           {{CONDRI_HAPROXY_TIMEOUT_CHECK}}
     maxconn                 {{CONDRI_HAPROXY_MAXCONN}}
 
-frontend main *:{{CONDRI_HAPROXY_FRONTEND_PORT}}
-    default_backend         app
 
-backend app
-    balance     {{CONDRI_HAPROXY_BALANCE}}
+{% for service in CONDRI_HAPROXY_SERVICES | from_json %}
+{% set mode,port,balance,service_name = service.split('::') %}
+frontend main *:{{port}}
+    mode {{mode}}
+    default_backend app_{{mode}}_{{port}}
+
+backend app_{{mode}}_{{port}}
+    balance {{balance}}
+    mode {{mode}}
     stats enable
+    {% if mode == "http" %}
     {% if CONDRI_HAPROXY_HTTP_CHECK == "1" %}
     option httpchk GET {{CONDRI_HAPROXY_HTTP_CHECK_URL}}
     http-check disable-on-404
     {% endif %}
+    {% endif %}
     {% for server in CONDRI_HAPROXY_SERVERS | from_json %}
-    server {{server.name}} {{server.ip}}:{{server.port}}{% if CONDRI_HAPROXY_HTTP_CHECK == "1" %} check{% endif %}
+    {% if server.service_name == service_name %}    
+    server {{server.name}} {{server.ip}}:{{server.port}}{% if mode == "http" %}{% if CONDRI_HAPROXY_HTTP_CHECK == "1" %} check{% endif %}{% endif %}
+    {% endif %}
     {% endfor %}
+
+{% endfor %}

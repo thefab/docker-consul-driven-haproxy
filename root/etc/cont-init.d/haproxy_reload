@@ -1,0 +1,10 @@
+#!/usr/bin/with-contenv sh
+
+I=0
+for NAME in `get_service_names.py`; do
+  mkdir -p /etc/services.d/haproxy_reload_${I}
+  export SERVICE_NAME=${NAME}
+  cat /etc/services.d.template/haproxy_reload/run |envtpl >/etc/services.d/haproxy_reload_${I}/run
+  chmod +x /etc/services.d/haproxy_reload_${I}/run
+  I=`expr ${I} + 1`
+done

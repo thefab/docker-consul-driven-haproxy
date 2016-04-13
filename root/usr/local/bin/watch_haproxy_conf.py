@@ -45,8 +45,8 @@ def write_index_to_file(index):
 
 
 CONSUL = os.environ['CONDRI_HAPROXY_CONSUL']
-SERVICE_NAME = os.environ['CONDRI_HAPROXY_SERVICE_NAME']
-WAIT = 30
+SERVICE_NAME = sys.argv[1]
+WAIT = 20
 
 thread.start_new_thread(monitor_stop_flag, ())
 

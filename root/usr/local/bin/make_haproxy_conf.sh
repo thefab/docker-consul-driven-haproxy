@@ -10,7 +10,7 @@ fi
 OLD_CONF=`cat /etc/haproxy/haproxy.cfg.md5 2>/dev/null`
 
 # Request consul about backend servers to use
-export CONDRI_HAPROXY_SERVERS="`consul_request.py ${CONDRI_HAPROXY_CONSUL} ${CONDRI_HAPROXY_SERVICE_NAME}`"
+export CONDRI_HAPROXY_SERVERS="`consul_request.py ${CONDRI_HAPROXY_CONSUL}`"
 
 # Make new configuration file
 cat /etc/haproxy/haproxy.cfg.template |envtpl --allow-missing >/etc/haproxy/haproxy.cfg.tmp
@@ -19,6 +19,7 @@ cat /etc/haproxy/haproxy.cfg.template |envtpl --allow-missing >/etc/haproxy/hapr
 haproxy -c -f /etc/haproxy/haproxy.cfg.tmp >/dev/null 2>&1
 if test $? -ne 0; then
     echo "ERROR: bad configuration file generated for haproxy, ignoring it"
+    rm -f /tmp/make_haproxy_conf.lock
     exit 1
 fi
 

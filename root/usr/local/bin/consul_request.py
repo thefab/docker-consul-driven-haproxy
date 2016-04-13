@@ -5,7 +5,7 @@ import sys
 import uuid
 import json
 
-def consul_tuples(consul, service_name, only_passing=True, timeout=10, tags=[]):
+def _consul_tuples(consul, service_name, only_passing=True, timeout=10, tags=[]):
     consul_cli = "timeout --signal=SIGKILL %i consul-cli --consul=%s" % (timeout, consul)
     random = str(uuid.uuid4())
     res = []
@@ -40,9 +40,19 @@ def consul_tuples(consul, service_name, only_passing=True, timeout=10, tags=[]):
             port = service['Port']
         except:
             continue
-        res.append({"name": container_name, "ip": address, "port": port})
+        res.append({"service_name": service_name, "name": container_name, "ip": address, "port": port})
     fn = lambda x: "%s__%s__%i" % (x['name'], x['ip'], x['port'])
     return sorted(res, key=fn)
 
-tpls = consul_tuples(sys.argv[1], sys.argv[2])
-print json.dumps(tpls)
+def consul_tuples(consul, services, only_passing=True, timeout=10, tags=[]):
+    res = []
+    for service_name in [x.split('::')[-1] for x in services]:
+        res = res + _consul_tuples(consul, service_name, only_passing=only_passing, timeout=timeout, tags=tags)
+    return res
+
+if len(sys.argv) == 3:
+    services = json.loads(sys.argv[2])
+else:
+    services = json.loads(os.environ['CONDRI_HAPROXY_SERVICES'])
+tpls = consul_tuples(sys.argv[1], services)
+print json.dumps(tpls, indent=4)

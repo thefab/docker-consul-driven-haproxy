@@ -1,5 +1,11 @@
+NAME=thefab/consul-driven-haproxy
+VERSION=$(shell ./version.sh)
+
 build:
-	docker build -f Dockerfile -t consul-driven-haproxy .
+	docker build -f Dockerfile -t $(NAME):$(VERSION) .
 
 debug: build
-	docker run -i -p 8082:80 -e CONDRI_HAPROXY_CONSUL=137.129.47.64:80 -e CONDRI_HAPROXY_SERVICE_NAME=synopsis_frontend_2015_6-8080 -t consul-driven-haproxy bash
+	docker run -i -p 8082:80 --env-file=./.debug_env -t $(NAME):$(VERSION) bash
+
+release:
+	if test "$(VERSION)" != "dev" -a "${DOCKER_PASSWORD}" != ""; then docker login -e="${DOCKER_EMAIL}" -u="${DOCKER_USERNAME}" -p="${DOCKER_PASSWORD}"; docker push $(NAME):$(VERSION); fi
