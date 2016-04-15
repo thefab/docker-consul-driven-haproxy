@@ -58,7 +58,7 @@ def _consul_services(consul, service_name, only_passing=True, timeout=10, tags=[
         random.shuffle(res)
         return res
 
-def consul_services(consul, service_names, only_passing=True, timeout=10, tags=[], sort='alphabetic', limit_to_one=False):
+def consul_services(consul, service_names, only_passing=True, timeout=10, tags=[], sort='alphabetic', limit_to=None):
     res = []
     number_of_services_by_container = {}
     for service_name in service_names: 
@@ -70,8 +70,8 @@ def consul_services(consul, service_names, only_passing=True, timeout=10, tags=[
                 number_of_services_by_container[key] = number_of_services_by_container[key] + 1
             else:
                 number_of_services_by_container[key] = 1
-    if limit_to_one:
-        selected_key = None
+    if limit_to is not None:
+        selected_keys = []
         if sort == 'alphabetic':
             keys = sorted(number_of_services_by_container.keys())
         else:
@@ -80,12 +80,13 @@ def consul_services(consul, service_names, only_passing=True, timeout=10, tags=[
             random.shuffle(keys)
         for key in keys:
             if number_of_services_by_container[key] == len(service_names):
-                selected_key = key
-                break
-        if selected_key is None:
-            return []
-        else:
-            return [x for x in res if x['name'] == selected_key.split('@')[0] and x['ip'] == selected_key.split('@')[1]]
+                selected_keys.append(key)
+                if limit_to == 'one':
+                    break
+        new_res = []
+        for selected_key in selected_keys: 
+            new_res = new_res + [x for x in res if x['name'] == selected_key.split('@')[0] and x['ip'] == selected_key.split('@')[1]]
+        return new_res
     else:  
         return res
 
@@ -96,10 +97,18 @@ if __name__ == '__main__':
     parser.add_argument('--all-states', help="if set, return all services and not only healthy ones", action="store_true")
     parser.add_argument('--tags', help="coma separated of tags to find in services", default="")
     parser.add_argument('--sort', help="if 'alphabetic', for a given service, sort reply in alphabetic order (default) ; if 'random', sort in random order", default="alphabetic", choices=('alphabetic', 'random'))
-    parser.add_argument('--limit-to-one-container', help="limit replies to a single container which has to support all specified services", action="store_true")
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument('--limit-to-one-container', help="limit replies to a single container which has to support all specified services", action="store_true")
+    group.add_argument('--limit-to-full-featured-containers', help="limit replies to containers which support all specified services", action="store_true")
     parser.add_argument("service_names", help="consul service names (separated by ',')")
     args = parser.parse_args()
+   
+    limit_to = None
+    if args.limit_to_one_container:
+        limit_to = "one"
+    elif args.limit_to_full_featured_containers:
+        limit_to = "full"
     tpls = consul_services(args.consul, args.service_names.split(','),
                            only_passing=not(args.all_states), timeout=args.consul_timeout, tags=args.tags.split(','),
-                           sort=args.sort, limit_to_one=args.limit_to_one_container)
+                           sort=args.sort, limit_to=limit_to)
     print json.dumps(tpls, indent=4)
