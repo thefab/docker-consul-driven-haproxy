@@ -12,14 +12,15 @@ def _consul_services(consul, service_name, only_passing=True, timeout=10, tags=[
     random_id = str(uuid.uuid4())
     res = []
     try:
-        os.system("%s health service %s >/tmp/%s" % (consul_cli, service_name, random_id))
-        # FIXME: better error handling (timeout, return code...)
+        return_code = os.system("%s health service %s >/tmp/%s 2>/dev/null" % (consul_cli, service_name, random_id))
+        if return_code != 0:
+            raise Exception("exception during consul request")
         with open("/tmp/%s" % random_id, "r") as f:
             content = json.loads(f.read())
         os.unlink("/tmp/%s" % random_id)
     except:
         os.unlink("/tmp/%s" % random_id)
-        return res
+        raise Exception("exception during consul request")
     for block in content:
         if "Service" not in block or "Node" not in block in "Checks" not in block:
             continue
