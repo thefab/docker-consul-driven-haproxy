@@ -10,7 +10,11 @@ fi
 OLD_CONF=`cat /etc/haproxy/haproxy.cfg.md5 2>/dev/null`
 
 # Request consul about backend servers to use
-export CONDRI_HAPROXY_SERVERS="`consul_request.py ${CONDRI_HAPROXY_CONSUL}`"
+CONSUL_SERVICE_NAMES=`get_service_names.py |xargs |sed 's/ /,/g'`
+if test "${CONDRI_HAPROXY_LIMIT_TO_ONE_CONTAINER}" = "1"; then
+  OPTIONS="--limit-to-one-container"
+fi
+export CONDRI_HAPROXY_SERVERS="`consul_request.py ${OPTIONS} --tags=${CONDRI_HAPROXY_SERVICE_TAGS} --consul=${CONDRI_HAPROXY_CONSUL} ${CONSUL_SERVICE_NAMES}`"
 
 # Make new configuration file
 cat /etc/haproxy/haproxy.cfg.template |envtpl --allow-missing >/etc/haproxy/haproxy.cfg.tmp

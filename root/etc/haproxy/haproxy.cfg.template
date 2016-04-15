@@ -26,8 +26,8 @@ defaults
     timeout check           {{CONDRI_HAPROXY_TIMEOUT_CHECK}}
     maxconn                 {{CONDRI_HAPROXY_MAXCONN}}
 
-
-{% for service in CONDRI_HAPROXY_SERVICES | from_json %}
+{% set services = CONDRI_HAPROXY_SERVICES.split(',') %}
+{% for service in services %}
 {% set mode,port,balance,service_name = service.split('::') %}
 frontend main *:{{port}}
     mode {{mode}}
