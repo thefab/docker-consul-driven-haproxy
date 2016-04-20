@@ -8,3 +8,8 @@ for NAME in `get_service_names.py`; do
   chmod +x /etc/services.d/haproxy_reload_${I}/run
   I=`expr ${I} + 1`
 done
+if test "${CONDRI_HAPROXY_LIMIT_BY_CONTAINER_NAME_AT}" != ""; then
+  mkdir -p /etc/services.d/haproxy_reload_kv
+  cat /etc/services.d.template/haproxy_reload_kv/run |envtpl >/etc/services.d/haproxy_reload_kv/run
+  chmod +x /etc/services.d/haproxy_reload_kv/run
+fi

@@ -1,7 +1,7 @@
 #!/usr/bin/with-contenv bash
 
 while test 1 -eq 1; do
-    timeout -s KILL 30 watch_haproxy_conf.py {{SERVICE_NAME}} services
+    timeout -s KILL 30 watch_haproxy_conf.py {{CONDRI_HAPROXY_LIMIT_BY_CONTAINER_NAME_AT}} kv
     if test -f /tmp/stop_flag; then
         exit 0
     fi

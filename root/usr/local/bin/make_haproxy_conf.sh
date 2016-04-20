@@ -3,6 +3,7 @@
 # Deal with a lock
 lockfile -1 -r 10 -l 60 /tmp/make_haproxy_conf.lock
 if test $? -ne 0; then
+    echo "WARNING: can't get lock after 10 seconds => exiting"
     exit 1
 fi
 
@@ -11,8 +12,16 @@ OLD_CONF=`cat /etc/haproxy/haproxy.cfg.md5 2>/dev/null`
 
 # Request consul about backend servers to use
 CONSUL_SERVICE_NAMES=`get_service_names.py |xargs |sed 's/ /,/g'`
+OPTIONS=""
 if test "${CONDRI_HAPROXY_LIMIT_TO_ONE_CONTAINER}" = "1"; then
-  OPTIONS="--limit-to-one-container"
+  OPTIONS="${OPTIONS} --limit-to-one-container"
+elif test "${CONDRI_HAPROXY_LIMIT_TO_FULL_FEATURED_CONTAINERS}" = "1"; then
+  OPTIONS="${OPTIONS} --limit-to-full-featured-containers"
+fi
+if test "${CONDRI_HAPROXY_LIMIT_BY_CONTAINER_NAME}" != ""; then
+  OPTIONS="${OPTIONS} --limit-by-container-name=${CONDRI_HAPROXY_LIMIT_BY_CONTAINER_NAME}"
+elif test "${CONDRI_HAPROXY_LIMIT_BY_CONTAINER_NAME_AT}" != ""; then
+  OPTIONS="${OPTIONS} --limit-by-container-name-at=${CONDRI_HAPROXY_LIMIT_BY_CONTAINER_NAME_AT}"
 fi
 export CONDRI_HAPROXY_SERVERS="`consul_request.py ${OPTIONS} --tags=${CONDRI_HAPROXY_SERVICE_TAGS} --consul=${CONDRI_HAPROXY_CONSUL} ${CONSUL_SERVICE_NAMES}`"
 if test "${CONDRI_HAPROXY_SERVERS}" = ""; then
@@ -39,11 +48,22 @@ cat /etc/haproxy/haproxy.cfg |md5sum |awk '{print $1;}' >/etc/haproxy/haproxy.cf
 # If RELOAD is passed as first argument of the script
 # Reload haproxy if necessary
 NEW_CONF=`cat /etc/haproxy/haproxy.cfg.md5 2>/dev/null`
-if test "${NEW_CONF}" != "${OLD_CONF}"; then
-    if test "${1}" = "RELOAD"; then
-        echo "conf changed, reloading haproxy..."
+if test "${1}" = "RELOAD"; then
+    if test "${NEW_CONF}" != "${OLD_CONF}"; then
+        echo
+        echo `date`": conf changed, new conf:"
+        echo "================================================================"
+        cat /etc/haproxy/haproxy.cfg |grep '[a-zA-Z]'
+        echo "================================================================"
+        echo "Reloading haproxy..."
         /etc/init.d/haproxy reload >/dev/null 2>&1
     fi
+else
+    echo
+    echo `date`": conf changed, new conf:"
+    echo "================================================================"
+    cat /etc/haproxy/haproxy.cfg |grep '[a-zA-Z]'
+    echo "================================================================"
 fi
 
 # Removing the lock
