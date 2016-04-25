@@ -29,6 +29,23 @@ if test "${CONDRI_HAPROXY_SERVERS}" = ""; then
     rm -f /tmp/make_haproxy_conf.lock
     exit 1
 fi
+N=`echo "{{ CONDRI_HAPROXY_SERVERS |from_json |length }}" |envtpl --allow-missing`
+if test ${N} -eq 0; then
+    # empty result
+    if test "${CONDRI_HAPROXY_IGNORE_EMPTY_CONSUL_RESULTS_MINUTES}" != "0"; then
+        if test -f /etc/haproxy/haproxy.cfg.md5; then
+            # We have a valid configuration file
+            N=`find /etc/haproxy/haproxy.cfg.md5 -mmin +${CONDRI_HAPROXY_IGNORE_EMPTY_CONSUL_RESULTS_MINUTES} 2>/dev/null |wc -l`
+            if test ${N} -eq 0; then
+                # The file is more recent than CONDRI_HAPROXY_IGNORE_EMPTY_CONSUL_RESULTS_MINUTES value
+                echo "WARNING: empty result from consul but CONDRI_HAPROXY_IGNORE_EMPTY_CONSUL_RESULTS_MINUTES is set"
+                echo "we keep the old configuration file"
+                rm -f /tmp/make_haproxy_conf.lock
+                exit 0
+            fi
+        fi
+    fi
+fi
 
 # Make new configuration file
 cat /etc/haproxy/haproxy.cfg.template |envtpl --allow-missing >/etc/haproxy/haproxy.cfg.tmp
