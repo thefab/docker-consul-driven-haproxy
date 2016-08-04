@@ -74,6 +74,7 @@ if test "${1}" = "RELOAD"; then
         echo "================================================================"
         echo "Reloading haproxy..."
         /etc/init.d/haproxy reload >/dev/null 2>&1
+        push_links.sh
     fi
 else
     echo
@@ -81,6 +82,7 @@ else
     echo "================================================================"
     cat /etc/haproxy/haproxy.cfg |grep '[a-zA-Z]'
     echo "================================================================"
+    push_links.sh
 fi
 
 # Removing the lock
