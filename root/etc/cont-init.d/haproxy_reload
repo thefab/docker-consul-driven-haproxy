@@ -13,5 +13,3 @@ if test "${CONDRI_HAPROXY_LIMIT_BY_CONTAINER_NAME_AT}" != ""; then
   cat /etc/services.d.template/haproxy_reload_kv/run |envtpl >/etc/services.d/haproxy_reload_kv/run
   chmod +x /etc/services.d/haproxy_reload_kv/run
 fi
-mkdir -p /etc/cron.d/
-cat /etc/cron.d.template/push_links |envtpl >/etc/cron.d/push_links

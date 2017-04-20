@@ -1,3 +1,0 @@
-#!/usr/bin/with-contenv bash
-
-timeout 30 rm_links.sh

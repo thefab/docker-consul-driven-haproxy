@@ -1,3 +1,0 @@
-CONDRI_HAPROXY_CONSUL={{CONDRI_HAPROXY_CONSUL}}
-CONDRI_HAPROXY_PUBLISH_LINKS={{CONDRI_HAPROXY_PUBLISH_LINKS}}
-* * * * * root /usr/local/bin/push_links.sh >/dev/null 2>&1
