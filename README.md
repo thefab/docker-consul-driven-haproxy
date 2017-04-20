@@ -8,4 +8,4 @@ docker image with a generic haproxy service driven by consul dynamic service dir
 [![DockerHub](https://img.shields.io/badge/docker%20hub-link-green.svg)](https://hub.docker.com/r/thefab/consul-driven-haproxy/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)]()
 [![Maturity](https://img.shields.io/badge/maturity-alpha-red.svg)]()
-[![Maintenance](https://img.shields.io/maintenance/no/2016.svg)]()
+[![Maintenance](https://img.shields.io/maintenance/yes/2017.svg)]()
