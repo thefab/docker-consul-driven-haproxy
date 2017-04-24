@@ -25,6 +25,7 @@ def consul_kv(consul, path, timeout=10):
             raise Exception("exception during consul request")
         with open("/tmp/%s" % random_id, "r") as f:
             content = f.read().strip()
+        os.unlink("/tmp/%s" % random_id)
         if len(content) == 0:
             return None
         return content
