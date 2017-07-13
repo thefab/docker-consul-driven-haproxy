@@ -1,5 +1,6 @@
 #!/usr/bin/with-contenv sh
 
+rm -f /tmp/make_haproxy_conf.lock
 I=0
 for NAME in `get_service_names.py`; do
   mkdir -p /etc/services.d/haproxy_reload_${I}
